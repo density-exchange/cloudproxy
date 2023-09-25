@@ -18,20 +18,13 @@ tag_specification = [
 
 
 def create_proxy():
-    vpcs = list((ec2.vpcs.filter()))
-    for vpc in vpcs:
-        response = ec2_client.describe_vpcs(
-            VpcIds=[
-                vpc.id,
-            ],
-        )
-
-        if response["Vpcs"][0]["IsDefault"]:
-            default_vpc = response["Vpcs"][0]["VpcId"]
+    vpc_id = os.environ.get("AWS_VPC_ID", "")
+    subnet_id = os.environ.get("AWS_SUBNET_ID","")
+    print("vpc_id:", vpc_id, "subnet_id:",subnet_id )
     user_data = set_auth(config["auth"]["username"], config["auth"]["password"])
     try:
         sg = ec2.create_security_group(
-            Description="SG for CloudProxy", GroupName="cloudproxy", VpcId=default_vpc
+            Description="SG for CloudProxy", GroupName="cloudproxy", VpcId=vpc_id
         )
         sg.authorize_ingress(
             CidrIp="0.0.0.0/0", IpProtocol="tcp", FromPort=8899, ToPort=8899
@@ -41,7 +34,7 @@ def create_proxy():
         )
     except botocore.exceptions.ClientError:
         pass
-    sg_id = ec2_client.describe_security_groups(GroupNames=["cloudproxy"])
+    sg_id = ec2_client.describe_security_groups(Filters=[{"Name": "group-name", "Values": ["cloudproxy"]}])
     sg_id = sg_id["SecurityGroups"][0]["GroupId"]
     if config["providers"]["aws"]["spot"] == 'persistent':
         instance = ec2.create_instances(
@@ -50,7 +43,7 @@ def create_proxy():
             MaxCount=1,
             InstanceType=config["providers"]["aws"]["size"],
             NetworkInterfaces=[
-                {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id]}
+                {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id], "SubnetId": subnet_id}
             ],
             InstanceMarketOptions={
                 "MarketType": "spot",
@@ -63,24 +56,24 @@ def create_proxy():
             UserData=user_data,
         )
     elif config["providers"]["aws"]["spot"] == 'one-time':
-            instance = ec2.create_instances(
-                ImageId=config["providers"]["aws"]["ami"],
-                MinCount=1,
-                MaxCount=1,
-                InstanceType=config["providers"]["aws"]["size"],
-                NetworkInterfaces=[
-                    {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id]}
-                ],
-                InstanceMarketOptions={
-                    "MarketType": "spot",
-                    "SpotOptions": {
-                        "InstanceInterruptionBehavior": "terminate",
-                        "SpotInstanceType": "one-time"
-                    }
-                },
-                TagSpecifications=tag_specification,
-                UserData=user_data,
-            )
+        instance = ec2.create_instances(
+            ImageId=config["providers"]["aws"]["ami"],
+            MinCount=1,
+            MaxCount=1,
+            InstanceType=config["providers"]["aws"]["size"],
+            NetworkInterfaces=[
+                {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id], "SubnetId": subnet_id}
+            ],
+            InstanceMarketOptions={
+                "MarketType": "spot",
+                "SpotOptions": {
+                    "InstanceInterruptionBehavior": "terminate",
+                    "SpotInstanceType": "one-time"
+                }
+            },
+            TagSpecifications=tag_specification,
+            UserData=user_data,
+        )
     else:
         instance = ec2.create_instances(
             ImageId=config["providers"]["aws"]["ami"],
@@ -88,7 +81,7 @@ def create_proxy():
             MaxCount=1,
             InstanceType=config["providers"]["aws"]["size"],
             NetworkInterfaces=[
-                {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id]}
+                {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id], "SubnetId": subnet_id}
             ],
             TagSpecifications=tag_specification,
             UserData=user_data,
