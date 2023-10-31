@@ -26,6 +26,27 @@ def create_proxy():
         family=gcp["image_family"]
     ).execute()
     source_disk_image = image_response['selfLink']
+    default_network = [{
+        'network': 'global/networks/default',
+        'accessConfigs': [
+            {
+                'name': 'External NAT',
+                'type': 'ONE_TO_ONE_NAT',
+                'networkTier': 'STANDARD'
+            }
+        ]
+    }]
+    if gcp["networks"] != "":
+        default_network = json.loads(gcp["networks"])
+    labels = {
+        'cloudproxy': 'cloudproxy'
+    }
+    if gcp["labels"] != "":
+        extra_labels = json.loads(gcp["labels"])
+        labels.update(extra_labels)
+
+
+    print("here are the networks:", default_network)
 
     body = {
         'name': 'cloudproxy-' + str(uuid.uuid4()),
@@ -36,9 +57,7 @@ def create_proxy():
                 'cloudproxy'
             ]
         },
-        "labels": {
-            'cloudproxy': 'cloudproxy'
-        },
+        "labels": labels,
         'disks': [
             {
                 'boot': True,
@@ -48,16 +67,7 @@ def create_proxy():
                 }
             }
         ],
-        'networkInterfaces': [{
-            'network': 'global/networks/default',
-            'accessConfigs': [
-                {
-                    'name': 'External NAT', 
-                    'type': 'ONE_TO_ONE_NAT',
-                    'networkTier': 'STANDARD'
-                }
-            ]
-        }],
+        'networkInterfaces': default_network,
         'metadata': {
             'items': [{
                 'key': 'startup-script',

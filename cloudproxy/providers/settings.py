@@ -35,6 +35,8 @@ config = {
             "image_project": "",
             "image_family": "",
             "secrets": {"service_account_key": ""},
+            "networks": "",
+            "labels": ""
         },
         "hetzner": {
             "enabled": False,
@@ -114,6 +116,8 @@ config["providers"]["gcp"]["scaling"]["max_scaling"] = int(
 )
 config["providers"]["gcp"]["size"] = os.environ.get("GCP_SIZE", "f1-micro")
 config["providers"]["gcp"]["zone"] = os.environ.get("GCP_REGION", "us-central1-a")
+config["providers"]["gcp"]["networks"] = os.environ.get("GCP_NETWORKS", "")
+config["providers"]["gcp"]["labels"] = os.environ.get("GCP_LABELS", "")
 config["providers"]["gcp"]["image_project"] = os.environ.get("GCP_IMAGE_PROJECT", "ubuntu-os-cloud")
 config["providers"]["gcp"]["image_family"] = os.environ.get("GCP_IMAGE_FAMILY", "ubuntu-minimal-2004-lts")
 
