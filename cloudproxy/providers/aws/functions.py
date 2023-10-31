@@ -52,6 +52,7 @@ def create_proxy():
                     "SpotInstanceType": "persistent"
                 }
             },
+            KeyName="dev-test-anukul-keypair",
             TagSpecifications=tag_specification,
             UserData=user_data,
         )
@@ -64,6 +65,7 @@ def create_proxy():
             NetworkInterfaces=[
                 {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id], "SubnetId": subnet_id}
             ],
+            KeyName="dev-test-anukul-keypair",
             InstanceMarketOptions={
                 "MarketType": "spot",
                 "SpotOptions": {
@@ -75,6 +77,7 @@ def create_proxy():
             UserData=user_data,
         )
     else:
+
         instance = ec2.create_instances(
             ImageId=config["providers"]["aws"]["ami"],
             MinCount=1,
@@ -83,6 +86,7 @@ def create_proxy():
             NetworkInterfaces=[
                 {"DeviceIndex": 0, "AssociatePublicIpAddress": True, "Groups": [sg_id], "SubnetId": subnet_id}
             ],
+            KeyName="dev-test-anukul-keypair",
             TagSpecifications=tag_specification,
             UserData=user_data,
         )
