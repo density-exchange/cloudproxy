@@ -37,6 +37,9 @@ logger.add("cloudproxy.log", rotation="20 MB")
 
 
 def main():
+    if settings.config["tag_name"] == "":
+        logger.error("Tag name not set, server not started")
+        return
     run_uvicorn_loguru(uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info"))
 
 

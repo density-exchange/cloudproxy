@@ -10,6 +10,7 @@ from cloudproxy.providers.config import set_auth
 from cloudproxy.providers.settings import config
 
 gcp = config["providers"]["gcp"]
+tag_name = config["tag_name"]
 if gcp["enabled"] == 'True':
     try:
         credentials = service_account.Credentials.from_service_account_info(
@@ -39,7 +40,7 @@ def create_proxy():
     if gcp["networks"] != "":
         default_network = json.loads(gcp["networks"])
     labels = {
-        'cloudproxy': 'cloudproxy'
+       tag_name : tag_name
     }
     if gcp["labels"] != "":
         extra_labels = json.loads(gcp["labels"])
@@ -49,12 +50,12 @@ def create_proxy():
     print("here are the networks:", default_network)
 
     body = {
-        'name': 'cloudproxy-' + str(uuid.uuid4()),
+        'name': tag_name + '-' + str(uuid.uuid4()),
         'machineType': 
             f"zones/{gcp['zone']}/machineTypes/{gcp['size']}",
         'tags': {
             'items': [
-                'cloudproxy'
+                tag_name
             ]
         },
         "labels": labels,
@@ -119,6 +120,6 @@ def list_instances():
     result = compute.instances().list(
         project=gcp["project"], 
         zone=gcp["zone"], 
-        filter='labels.cloudproxy eq cloudproxy'
+        filter=f"labels.{tag_name} eq {tag_name}"
     ).execute()
     return result['items'] if 'items' in result else []

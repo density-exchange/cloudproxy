@@ -6,6 +6,7 @@ config = {
     "no_auth": False,
     "only_host_ip": False,
     "age_limit": 0,
+    "tag_name" : "",
     "providers": {
         "digitalocean": {
             "enabled": False,
@@ -143,3 +144,5 @@ config["providers"]["hetzner"]["location"] = os.environ.get(
 # config["providers"]["hetzner"]["datacenter"] = os.environ.get(
 #     "HETZNER_DATACENTER", "dc3"
 # )
+
+config["tag_name"] = os.environ.get("TAG_NAME")

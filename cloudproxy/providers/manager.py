@@ -29,6 +29,9 @@ def hetzner_manager():
 
 
 def init_schedule():
+    if settings.config["tag_name"] == "":
+        logger.error("Tag name not set, scheduler not started")
+        return
     sched = BackgroundScheduler()
     sched.start()
     if settings.config["providers"]["digitalocean"]["enabled"] == 'True':

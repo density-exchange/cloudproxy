@@ -9,9 +9,10 @@ from cloudproxy.providers.settings import config
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
+tag_name = config["tag_name"]
 ec2 = boto3.resource("ec2", region_name=config["providers"]["aws"]["region"])
 ec2_client = boto3.client("ec2", region_name=config["providers"]["aws"]["region"])
-tags = [{"Key": "cloudproxy", "Value": "cloudproxy"}]
+tags = [{"Key": "cloudproxy", "Value": tag_name}]
 tag_specification = [
     {"ResourceType": "instance", "Tags": tags},
 ]
@@ -133,7 +134,7 @@ def start_proxy(instance_id):
 
 def list_instances():
     filters = [
-        {"Name": "tag:cloudproxy", "Values": ["cloudproxy"]},
+        {"Name": "tag:cloudproxy", "Values": [tag_name]},
         {"Name": "instance-state-name", "Values": ["pending", "running", "stopped", "stopping"]},
     ]
     instances = ec2_client.describe_instances(Filters=filters)
